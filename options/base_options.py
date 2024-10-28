@@ -60,6 +60,7 @@ class BaseOptions():
         self.initialized = True
         # djc add
         parser.add_argument('--flip_x', action='store_true', help='if specified and not specified --no_flip, flip the images for data augmentation top2bottom')
+        parser.add_argument('--rotate', type=int, default=0, help='specified the rotate digree [0-360]')
         return parser
 
     def gather_options(self):

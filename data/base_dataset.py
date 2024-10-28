@@ -75,14 +75,19 @@ def get_params(opt, size):
 
     flip = random.random() > 0.5
     flip_x = random.random() > 0.5
+    
+    rotate = random.randint(0, opt.rotate)
 
-    return {'crop_pos': (x, y), 'flip': flip, 'flip_x': flip_x}
+    return {'crop_pos': (x, y), 'flip': flip, 'flip_x': flip_x, 'rotate':rotate}
 
 
 def get_transform(opt, params=None, grayscale=False, method=transforms.InterpolationMode.BICUBIC, convert=True):
     transform_list = []
     if grayscale:
         transform_list.append(transforms.Grayscale(1))
+    if params is not None:
+        if params['rotate']:
+            transform_list.append(transforms.Lambda(lambda img: __rotate(img, params['rotate'])))
     if 'resize' in opt.preprocess:
         osize = [opt.load_size, opt.load_size]
         transform_list.append(transforms.Resize(osize, method))
@@ -153,6 +158,10 @@ def __crop(img, pos, size):
         return img.crop((x1, y1, x1 + tw, y1 + th))
     return img
 
+def __rotate(img, rotate):
+    if rotate:
+        return img.rotate(rotate, fillcolor='white')
+    return img
 
 def __flip(img, flip):
     if flip:
