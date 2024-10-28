@@ -74,8 +74,9 @@ def get_params(opt, size):
     y = random.randint(0, np.maximum(0, new_h - opt.crop_size))
 
     flip = random.random() > 0.5
+    flip_x = random.random() > 0.5
 
-    return {'crop_pos': (x, y), 'flip': flip}
+    return {'crop_pos': (x, y), 'flip': flip, 'flip_x': flip_x}
 
 
 def get_transform(opt, params=None, grayscale=False, method=transforms.InterpolationMode.BICUBIC, convert=True):
@@ -100,9 +101,11 @@ def get_transform(opt, params=None, grayscale=False, method=transforms.Interpola
     if not opt.no_flip:
         if params is None:
             transform_list.append(transforms.RandomHorizontalFlip())
-        elif params['flip']:
+        else:
+          if params['flip']:
             transform_list.append(transforms.Lambda(lambda img: __flip(img, params['flip'])))
-
+          if opt.flip_x and params['flip_x']:
+            transform_list.append(transforms.Lambda(lambda img: __flip_x(img, params['flip_x'])))
     if convert:
         transform_list += [transforms.ToTensor()]
         if grayscale:
@@ -156,6 +159,10 @@ def __flip(img, flip):
         return img.transpose(Image.FLIP_LEFT_RIGHT)
     return img
 
+def __flip_x(img, flip):
+    if flip:
+        return img.transpose(Image.FLIP_TOP_BOTTOM)
+    return img
 
 def __print_size_warning(ow, oh, w, h):
     """Print warning information about image size(only print once)"""
