@@ -1,4 +1,7 @@
 import os
+import json
+import random
+
 from data.base_dataset import BaseDataset, get_params, get_transform
 from data.image_folder import make_dataset
 from PIL import Image
@@ -50,9 +53,12 @@ class AlignedDataset(BaseDataset):
         B = AB.crop((w2, 0, w, h))
 
         # apply the same transform to both A and B
-        transform_params = get_params(self.opt, A.size)
-        A_transform = get_transform(self.opt, transform_params, grayscale=(self.input_nc == 1))
-        B_transform = get_transform(self.opt, transform_params, grayscale=(self.output_nc == 1))
+        transform_params_A = get_params(self.opt, A.size)
+        transform_params_B = json.loads(json.dumps(transform_params_A))
+        transform_params_A['grayscale'] = random.random() < self.opt.agument_grayscale_A
+        transform_params_B['grayscale'] = random.random() < self.opt.agument_grayscale_B
+        A_transform = get_transform(self.opt, transform_params_A, grayscale=(self.input_nc == 1))
+        B_transform = get_transform(self.opt, transform_params_B, grayscale=(self.output_nc == 1))
 
         A = A_transform(A)
         B = B_transform(B)

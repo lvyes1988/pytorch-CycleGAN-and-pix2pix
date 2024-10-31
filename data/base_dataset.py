@@ -111,6 +111,8 @@ def get_transform(opt, params=None, grayscale=False, method=transforms.Interpola
             transform_list.append(transforms.Lambda(lambda img: __flip(img, params['flip'])))
           if opt.flip_x and params['flip_x']:
             transform_list.append(transforms.Lambda(lambda img: __flip_x(img, params['flip_x'])))
+    if (not grayscale) and (params is not None) and params.get('grayscale',False):
+        transform_list.append(transforms.Grayscale(3))
     if convert:
         transform_list += [transforms.ToTensor()]
         if grayscale:
