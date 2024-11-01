@@ -28,6 +28,17 @@ class BaseDataset(data.Dataset, ABC):
         """
         self.opt = opt
         self.root = opt.dataroot
+        self.cache = {}
+
+    @staticmethod
+    def get_cache_path(self, path):
+        if path in self.cache:
+            return self.cache[path]
+        with open(path, 'rb') as f:
+            bts = f.read()
+        if self.opt.cache_num > len(self.cache):
+            self.cache[path] = bts
+        return bts
 
     @staticmethod
     def modify_commandline_options(parser, is_train):

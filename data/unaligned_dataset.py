@@ -1,5 +1,7 @@
 import os
-from data.base_dataset import BaseDataset, get_transform
+import io
+
+from data.base_dataset import BaseDataset, get_transform, get_params
 from data.image_folder import make_dataset
 from PIL import Image
 import random
@@ -28,13 +30,14 @@ class UnalignedDataset(BaseDataset):
 
         self.A_paths = sorted(make_dataset(self.dir_A, opt.max_dataset_size))   # load images from '/path/to/data/trainA'
         self.B_paths = sorted(make_dataset(self.dir_B, opt.max_dataset_size))    # load images from '/path/to/data/trainB'
+        if opt.repeat_dataset_count > 1:
+            tempA = self.A_paths.copy()
+            tempB = self.B_paths.copy()
+            for n in range(opt.repeat_dataset_count-1):
+                self.A_paths.extend(tempA)
+                self.B_paths.extend(tempB)
         self.A_size = len(self.A_paths)  # get the size of dataset A
         self.B_size = len(self.B_paths)  # get the size of dataset B
-        btoA = self.opt.direction == 'BtoA'
-        input_nc = self.opt.output_nc if btoA else self.opt.input_nc       # get the number of channels of input image
-        output_nc = self.opt.input_nc if btoA else self.opt.output_nc      # get the number of channels of output image
-        self.transform_A = get_transform(self.opt, grayscale=(input_nc == 1))
-        self.transform_B = get_transform(self.opt, grayscale=(output_nc == 1))
 
     def __getitem__(self, index):
         """Return a data point and its metadata information.
@@ -54,11 +57,27 @@ class UnalignedDataset(BaseDataset):
         else:   # randomize the index for domain B to avoid fixed pairs.
             index_B = random.randint(0, self.B_size - 1)
         B_path = self.B_paths[index_B]
-        A_img = Image.open(A_path).convert('RGB')
-        B_img = Image.open(B_path).convert('RGB')
+
+        A_img = Image.open(io.BytesIO(self.get_cache_path(self, A_path))).convert('RGB')
+        B_img = Image.open(io.BytesIO(self.get_cache_path(self, B_path))).convert('RGB')
+        # apply the same transform to both A and B
+        transform_params_A = get_params(self.opt, A_img.size)
+        transform_params_B = get_params(self.opt, B_img.size)
+        transform_params_A['grayscale'] = random.random() < self.opt.agument_grayscale_A
+        transform_params_B['grayscale'] = random.random() < self.opt.agument_grayscale_B
+        transform_params_A['blur'] = random.random() < self.opt.agument_blur_A
+        transform_params_B['blur'] = random.random() < self.opt.agument_blur_B
+        transform_params_A['distort'] = random.random() < self.opt.agument_distort_A
+        transform_params_B['distort'] = random.random() < self.opt.agument_distort_B
+        
+        btoA = self.opt.direction == 'BtoA'
+        input_nc = self.opt.output_nc if btoA else self.opt.input_nc       # get the number of channels of input image
+        output_nc = self.opt.input_nc if btoA else self.opt.output_nc      # get the number of channels of output image
+        transform_A = get_transform(self.opt, transform_params_A, grayscale=(input_nc == 1))
+        transform_B = get_transform(self.opt, transform_params_B, grayscale=(output_nc == 1))
         # apply image transformation
-        A = self.transform_A(A_img)
-        B = self.transform_B(B_img)
+        A = transform_A(A_img)
+        B = transform_B(B_img)
 
         return {'A': A, 'B': B, 'A_paths': A_path, 'B_paths': B_path}
 

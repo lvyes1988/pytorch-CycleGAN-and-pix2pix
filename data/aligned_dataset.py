@@ -1,6 +1,7 @@
 import os
 import json
 import random
+import io
 
 from data.base_dataset import BaseDataset, get_params, get_transform
 from data.image_folder import make_dataset
@@ -45,7 +46,7 @@ class AlignedDataset(BaseDataset):
         """
         # read a image given a random integer index
         AB_path = self.AB_paths[index]
-        AB = Image.open(AB_path).convert('RGB')
+        AB = Image.open(io.BytesIO(self.get_cache_path(self, AB_path))).convert('RGB')
         # split AB image into A and B
         w, h = AB.size
         w2 = int(w / 2)
