@@ -57,6 +57,8 @@ class AlignedDataset(BaseDataset):
         transform_params_B = json.loads(json.dumps(transform_params_A))
         transform_params_A['grayscale'] = random.random() < self.opt.agument_grayscale_A
         transform_params_B['grayscale'] = random.random() < self.opt.agument_grayscale_B
+        transform_params_A['blur'] = random.random() < self.opt.agument_blur_A
+        transform_params_B['blur'] = random.random() < self.opt.agument_blur_B
         A_transform = get_transform(self.opt, transform_params_A, grayscale=(self.input_nc == 1))
         B_transform = get_transform(self.opt, transform_params_B, grayscale=(self.output_nc == 1))
 
@@ -68,3 +70,4 @@ class AlignedDataset(BaseDataset):
     def __len__(self):
         """Return the total number of images in the dataset."""
         return len(self.AB_paths)
+

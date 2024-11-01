@@ -64,6 +64,8 @@ class BaseOptions():
         parser.add_argument('--repeat_dataset_count', type=int, default=1, help='repeat the dataset n count.')
         parser.add_argument('--agument_grayscale_A', type=float, default=0.0, help='randomly grayscale A (output 3 channels).')
         parser.add_argument('--agument_grayscale_B', type=float, default=0.0, help='randomly grayscale B (output 3 channels).')
+        parser.add_argument('--agument_blur_A', type=float, default=0.0, help='the prop of randomly blur (gaussianblur, medianblur) A.')
+        parser.add_argument('--agument_blur_B', type=float, default=0.0, help='the prop of randomly blur (gaussianblur, medianblur) B.')
         return parser
 
     def gather_options(self):

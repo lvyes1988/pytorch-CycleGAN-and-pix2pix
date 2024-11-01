@@ -5,7 +5,7 @@ It also includes common transformation functions (e.g., get_transform, __scale_w
 import random
 import numpy as np
 import torch.utils.data as data
-from PIL import Image
+from PIL import Image, ImageEnhance, ImageFilter
 import torchvision.transforms as transforms
 from abc import ABC, abstractmethod
 
@@ -111,6 +111,15 @@ def get_transform(opt, params=None, grayscale=False, method=transforms.Interpola
             transform_list.append(transforms.Lambda(lambda img: __flip(img, params['flip'])))
           if opt.flip_x and params['flip_x']:
             transform_list.append(transforms.Lambda(lambda img: __flip_x(img, params['flip_x'])))
+    if params is not None and params.get('blur', 0.0):
+        if random.random() < params.get('blur', 0.0):
+            blur_fn = ["gaussian_blur", "median_blur"]
+            random.shuffle(blur_fn)
+            fn = blur_fn[0]
+            if fn == "gaussian_blur":
+                transform_list.append(transforms.Lambda(lambda img: gaussian_blur(img)))
+            else:
+                transform_list.append(transforms.Lambda(lambda img: median_blur(img)))
     if (not grayscale) and (params is not None) and params.get('grayscale',False):
         transform_list.append(transforms.Grayscale(3))
     if convert:
@@ -183,3 +192,12 @@ def __print_size_warning(ow, oh, w, h):
               "(%d, %d). This adjustment will be done to all images "
               "whose sizes are not multiples of 4" % (ow, oh, w, h))
         __print_size_warning.has_printed = True
+
+def gaussian_blur(im, radius=2):
+    im = im.filter(ImageFilter.GaussianBlur(radius = radius))
+    return im
+
+def median_blur(im, size=3):
+    im = im.filter(ImageFilter.MedianFilter(size))
+    return im
+
