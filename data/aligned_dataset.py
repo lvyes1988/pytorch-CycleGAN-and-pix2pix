@@ -59,6 +59,8 @@ class AlignedDataset(BaseDataset):
         transform_params_B['grayscale'] = random.random() < self.opt.agument_grayscale_B
         transform_params_A['blur'] = random.random() < self.opt.agument_blur_A
         transform_params_B['blur'] = random.random() < self.opt.agument_blur_B
+        transform_params_A['distort'] = random.random() < self.opt.agument_distort_A
+        transform_params_B['distort'] = random.random() < self.opt.agument_distort_B
         A_transform = get_transform(self.opt, transform_params_A, grayscale=(self.input_nc == 1))
         B_transform = get_transform(self.opt, transform_params_B, grayscale=(self.output_nc == 1))
 

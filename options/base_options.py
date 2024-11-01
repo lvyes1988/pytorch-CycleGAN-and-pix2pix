@@ -66,6 +66,8 @@ class BaseOptions():
         parser.add_argument('--agument_grayscale_B', type=float, default=0.0, help='randomly grayscale B (output 3 channels).')
         parser.add_argument('--agument_blur_A', type=float, default=0.0, help='the prop of randomly blur (gaussianblur, medianblur) A.')
         parser.add_argument('--agument_blur_B', type=float, default=0.0, help='the prop of randomly blur (gaussianblur, medianblur) B.')
+        parser.add_argument('--agument_distort_A', type=float, default=0.0, help='the prop of randomly distort A (brightness, contrast, saturation, sharpness).')
+        parser.add_argument('--agument_distort_B', type=float, default=0.0, help='the prop of randomly distort B (brightness, contrast, saturation, sharpness).')
         return parser
 
     def gather_options(self):

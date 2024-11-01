@@ -120,6 +120,28 @@ def get_transform(opt, params=None, grayscale=False, method=transforms.Interpola
                 transform_list.append(transforms.Lambda(lambda img: gaussian_blur(img)))
             else:
                 transform_list.append(transforms.Lambda(lambda img: median_blur(img)))
+    if params is not None and params.get('distort', 0.0):
+        fs = dict()
+        fs["brightness"]={"f":brightness, "range":0.1}
+        fs["contrast"]={"f":contrast, "range":0.1}
+        fs["saturation"]={"f":saturation, "range":0.1}
+        fs["hue"]={"f":hue, "range":0.1}
+        fs["sharpness"]={"f":sharpness, "range":0.1}
+        for k in fs:
+            if random.random() < params.get('distort', 0.0):
+                v = fs[k]
+                range = v['range']
+                fn = v['f']
+                if fn == 'brightness':
+                    transform_list.append(transforms.Lambda(lambda img:  brightness(img, 1-range, 1+range)))
+                elif fn == 'contrast':
+                    transform_list.append(transforms.Lambda(lambda img:  contrast(img, 1-range, 1+range)))
+                elif fn == 'saturation':
+                    transform_list.append(transforms.Lambda(lambda img:  saturation(img, 1-range, 1+range)))
+                elif fn == 'hue':
+                    transform_list.append(transforms.Lambda(lambda img:  hue(img, 1-range, 1+range)))
+                elif fn == 'sharpness':
+                    transform_list.append(transforms.Lambda(lambda img:  sharpness(img, 1-range, 1+range)))
     if (not grayscale) and (params is not None) and params.get('grayscale',False):
         transform_list.append(transforms.Grayscale(3))
     if convert:
@@ -199,5 +221,32 @@ def gaussian_blur(im, radius=2):
 
 def median_blur(im, size=3):
     im = im.filter(ImageFilter.MedianFilter(size))
+    return im
+
+def brightness(im, brightness_lower, brightness_upper):
+    brightness_delta = np.random.uniform(brightness_lower, brightness_upper)
+    im = ImageEnhance.Brightness(im).enhance(brightness_delta)
+    return im
+
+def contrast(im, contrast_lower, contrast_upper):
+    contrast_delta = np.random.uniform(contrast_lower, contrast_upper)
+    im = ImageEnhance.Contrast(im).enhance(contrast_delta)
+    return im
+
+def saturation(im, saturation_lower, saturation_upper):
+    saturation_delta = np.random.uniform(saturation_lower, saturation_upper)
+    im = ImageEnhance.Color(im).enhance(saturation_delta)
+    return im
+
+def hue(im, hue_lower, hue_upper):
+    hue_delta = np.random.uniform(hue_lower, hue_upper)
+    im = np.array(im.convert('HSV'))
+    im[:, :, 0] = im[:, :, 0] + hue_delta
+    im = Image.fromarray(im, mode='HSV').convert('RGB')
+    return im
+
+def sharpness(im, sharpness_lower, sharpness_upper):
+    sharpness_delta = np.random.uniform(sharpness_lower, sharpness_upper)
+    im = ImageEnhance.Sharpness(im).enhance(sharpness_delta)
     return im
 
