@@ -154,9 +154,29 @@ class BaseModel(ABC):
                 net = getattr(self, 'net' + name)
 
                 if len(self.gpu_ids) > 0 and torch.cuda.is_available():
+                    if name.endswith('G'):
+                        input_tensor = self.real_A[0].unsqueeze(0)
+                        net.eval()
+                        torch.onnx.export(net.module,
+                            (input_tensor,),        # inputs of the model,
+                            f"{save_path}.onnx",        # filename of the ONNX model
+                            input_names=["input"]  # Rename inputs for the ONNX model
+                        #    ,dynamo=True             # True or False to select the exporter to use
+                        )
+                        net.train()
                     torch.save(net.module.cpu().state_dict(), save_path)
                     net.cuda(self.gpu_ids[0])
                 else:
+                    if name.endswith('G'):
+                        input_tensor = self.real_A[0].unsqueeze(0)
+                        net.eval()
+                        torch.onnx.export(net,
+                            (input_tensor,),        # inputs of the model,
+                            f"{save_path}.onnx",        # filename of the ONNX model
+                            input_names=["input"]  # Rename inputs for the ONNX model
+                        #    ,dynamo=True             # True or False to select the exporter to use
+                        )
+                        net.train()
                     torch.save(net.cpu().state_dict(), save_path)
 
     def __patch_instance_norm_state_dict(self, state_dict, module, keys, i=0):
