@@ -1,7 +1,7 @@
 import os
 import io
 
-from data.base_dataset import BaseDataset, get_transform, get_params
+from data.base_dataset import BaseDataset, get_transform, get_params, transparent_to_whiteBK
 from data.image_folder import make_dataset
 from PIL import Image
 import random
@@ -58,8 +58,15 @@ class UnalignedDataset(BaseDataset):
             index_B = random.randint(0, self.B_size - 1)
         B_path = self.B_paths[index_B]
 
-        A_img = Image.open(io.BytesIO(self.get_cache_path(self, A_path))).convert('RGB')
+        A_img = Image.open(io.BytesIO(self.get_cache_path(self, A_path)))
         B_img = Image.open(io.BytesIO(self.get_cache_path(self, B_path))).convert('RGB')
+        
+        
+        if random.random() < self.opt.agument_whiteBK_A:
+            A_img = transparent_to_whiteBK(A_img)
+        A_img = A_img.convert('RGB')
+
+
         # apply the same transform to both A and B
         transform_params_A = get_params(self.opt, A_img.size)
         transform_params_B = get_params(self.opt, B_img.size)

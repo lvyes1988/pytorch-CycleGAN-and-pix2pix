@@ -261,3 +261,17 @@ def sharpness(im, sharpness_lower, sharpness_upper):
     im = ImageEnhance.Sharpness(im).enhance(sharpness_delta)
     return im
 
+
+def transparent_to_whiteBK(image:Image.Image):
+    if image.mode == 'P':
+        if image.palette.mode[-1] == 'A':
+            image = image.convert(image.palette.mode)
+
+    if image.mode[-1] == 'A':
+        new_mode = image.mode[:-1]
+        color = [255]*len(new_mode)
+        new_image = Image.new(new_mode, image.size, color=tuple(color))
+        new_image.paste(image, None, image)
+        return new_image
+    else:
+        return image

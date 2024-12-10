@@ -68,6 +68,7 @@ class BaseOptions():
         parser.add_argument('--agument_blur_B', type=float, default=0.0, help='the prop of randomly blur (gaussianblur, medianblur) B.')
         parser.add_argument('--agument_distort_A', type=float, default=0.0, help='the prop of randomly distort A (brightness, contrast, saturation, sharpness).')
         parser.add_argument('--agument_distort_B', type=float, default=0.0, help='the prop of randomly distort B (brightness, contrast, saturation, sharpness).')
+        parser.add_argument('--agument_whiteBK_A', type=float, default=1.0, help='the prop of transparent to whiteBK A.')
         parser.add_argument('--cache_num', type=int, default=0, help='the image bytes cache num')
         return parser
 

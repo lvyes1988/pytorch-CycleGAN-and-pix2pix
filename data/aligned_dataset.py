@@ -3,7 +3,7 @@ import json
 import random
 import io
 
-from data.base_dataset import BaseDataset, get_params, get_transform
+from data.base_dataset import BaseDataset, get_params, get_transform, transparent_to_whiteBK
 from data.image_folder import make_dataset
 from PIL import Image
 
@@ -46,12 +46,19 @@ class AlignedDataset(BaseDataset):
         """
         # read a image given a random integer index
         AB_path = self.AB_paths[index]
-        AB = Image.open(io.BytesIO(self.get_cache_path(self, AB_path))).convert('RGB')
+        AB = Image.open(io.BytesIO(self.get_cache_path(self, AB_path)))
         # split AB image into A and B
         w, h = AB.size
         w2 = int(w / 2)
         A = AB.crop((0, 0, w2, h))
         B = AB.crop((w2, 0, w, h))
+        
+        
+        if random.random() < self.opt.agument_whiteBK_A:
+            A = transparent_to_whiteBK(A)
+        A = A.convert('RGB')
+        B = B.convert('RGB')
+
 
         # apply the same transform to both A and B
         transform_params_A = get_params(self.opt, A.size)
@@ -62,6 +69,8 @@ class AlignedDataset(BaseDataset):
         transform_params_B['blur'] = random.random() < self.opt.agument_blur_B
         transform_params_A['distort'] = random.random() < self.opt.agument_distort_A
         transform_params_B['distort'] = random.random() < self.opt.agument_distort_B
+        transform_params_B['whiteBK'] = random.random() < self.opt.agument_whiteBK_A
+
         A_transform = get_transform(self.opt, transform_params_A, grayscale=(self.input_nc == 1))
         B_transform = get_transform(self.opt, transform_params_B, grayscale=(self.output_nc == 1))
 
