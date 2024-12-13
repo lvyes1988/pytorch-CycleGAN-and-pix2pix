@@ -80,6 +80,11 @@ def get_params(opt, size):
     elif opt.preprocess == 'scale_width_and_crop':
         new_w = opt.load_size
         new_h = opt.load_size * h // w
+    elif opt.preprocess == 'scale_short_and_crop':
+        min_side = min(h,w)
+        ratio = opt.load_size/min_side
+        new_w = round(w*ratio)
+        new_h = round(h*ratio)
 
     x = random.randint(0, np.maximum(0, new_w - opt.crop_size))
     y = random.randint(0, np.maximum(0, new_h - opt.crop_size))
@@ -104,6 +109,8 @@ def get_transform(opt, params=None, grayscale=False, method=transforms.Interpola
         transform_list.append(transforms.Resize(osize, method))
     elif 'scale_width' in opt.preprocess:
         transform_list.append(transforms.Lambda(lambda img: __scale_width(img, opt.load_size, opt.crop_size, method)))
+    elif 'scale_short' in opt.preprocess:
+        transform_list.append(transforms.Lambda(lambda img: __scale_short(img, opt.load_size, method)))
 
     if 'crop' in opt.preprocess:
         if params is None:
@@ -193,6 +200,16 @@ def __scale_width(img, target_size, crop_size, method=transforms.InterpolationMo
     h = int(max(target_size * oh / ow, crop_size))
     return img.resize((w, h), method)
 
+def __scale_short(img, target_size, method=transforms.InterpolationMode.BICUBIC):
+    method = __transforms2pil_resize(method)
+    ow, oh = img.size
+    min_side = min(ow,oh)
+    if min_side == target_size:
+        return img
+    ratio = target_size/min_side
+    new_w = round(ow*ratio)
+    new_h = round(oh*ratio)
+    return img.resize((new_w, new_h), method)
 
 def __crop(img, pos, size):
     ow, oh = img.size
